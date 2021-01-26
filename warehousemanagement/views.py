@@ -31,7 +31,8 @@ class ProductListView(mixins.CreateModelMixin, generics.ListAPIView):
 
     def post(self, request, *args, **kwargs):
         logger = logging.getLogger("info")
-        logger.info(f"Post on: {request.path}; Manufacturer: {request.data['manufacturer_name']}; Model: {request.data['model_name']}; Price: {request.data['price']};")
+        logger.info(f"Post on: {request.path}; Manufacturer: {request.data['manufacturer_name']}; Model: "
+                    f"{request.data['model_name']}; Price: {request.data['price']};")
         return self.create(request, *args, **kwargs)
 
     def get_serializer_context(self, *args, **kwargs):
