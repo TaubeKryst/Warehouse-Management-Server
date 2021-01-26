@@ -3,7 +3,7 @@ Django REST implementation for client authentication and warehouse management, e
 
 Two types of authentication available: bearer authentication and OpenID.
 
-##Installation
+## Installation
 To run locally:
 1. Create a Python 3.6 virtualenv
 2. Install dependencies:
