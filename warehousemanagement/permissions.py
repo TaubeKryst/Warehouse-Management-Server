@@ -10,11 +10,11 @@ class IsManagerOrEmployee(permissions.BasePermission):
 
         if manager_group in request.user.groups.all() or employee_group in request.user.groups.all():
             # DELETE request provided only for group "warehouse manager"
-            False if request.method == "DELETE" and not manager_group in request.user.groups.all() else True
+            return False if request.method == "DELETE" and not manager_group in request.user.groups.all() else True
         else:
             return False
 
     def has_permission(self, request, view):
         manager_group = Group.objects.get(name="warehouse manager")
         employee_group = Group.objects.get(name="warehouse employee")
-        return True if manager_group in request.user.groups.all() or employee_group in request.user.groups.all() else False
+        return manager_group in request.user.groups.all() or employee_group in request.user.groups.all()
