@@ -17,22 +17,24 @@ class ProductListView(mixins.CreateModelMixin, generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated, IsManagerOrEmployee]
 
     def get_queryset(self):
-        qs = Product.objects.all()
-        query = self.request.GET.get("q")
-        if query is not None:
-            qs = qs.filter(
-                Q(manufacturer_name__icontains=query) |
-                Q(model_name__icontains=query)
+        all_products = Product.objects.all()
+        manufacturer_name = self.request.GET.get("manufacturer_name")
+
+        if manufacturer_name is not None:
+            selected_products = all_products.filter(
+                Q(manufacturer_name__icontains=manufacturer_name)
             ).distinct()
-        return qs
+            return selected_products
+
+        return all_products
 
     def perform_create(self, serializer):
         serializer.save(quantity=0)
 
     def post(self, request, *args, **kwargs):
         logger = logging.getLogger("info")
-        logger.info(f"Post on: {request.path}; Manufacturer: {request.data['manufacturer_name']}; Model: "
-                    f"{request.data['model_name']}; Price: {request.data['price']};")
+        logger.info(f"Post on: {request.path}; Manufacturer: {request.data['manufacturer_name']}; "
+                    f"Model: {request.data['model_name']}; Price: {request.data['price']};")
         return self.create(request, *args, **kwargs)
 
     def get_serializer_context(self, *args, **kwargs):
@@ -46,20 +48,21 @@ class ProductRudView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return Product.objects.all()
 
-    def get_selected_object(self, pk):
+    def get_selected_object(self, product_id):
         try:
-            return Product.objects.get(pk=pk)
-        except:
+            return Product.objects.get(pk=product_id)
+        except Product.DoesNotExist:
             return "no product"
 
     def post(self, request, pk):
         logger = logging.getLogger("info")
-        logger.info(f"Post on: {request.path}; Mode: {request.data['op']}; Value: {request.data['quantity']}")
+        logger.info(f"Post on: {request.path}; Mode: {request.data['op']}; Value: "
+                    f"{request.data['quantity']}")
 
         product_object = self.get_selected_object(pk)
         if product_object == "no product":
-            logger.info(f"The product id={pk} has been removed")
-            return JsonResponse(status=404, data="The product has been removed", safe=False)
+            logger.info(f"The product id={pk} does not exist")
+            return JsonResponse(status=404, data="The product does not exist", safe=False)
 
         serializer = ProductSerializer(product_object, data=request.data, partial=True)
         if 'quantity' in request.data and 'op' in request.data and serializer.is_valid():
@@ -80,8 +83,8 @@ class ProductRudView(generics.RetrieveUpdateDestroyAPIView):
 
     def put(self, request, *args, **kwargs):
         logger = logging.getLogger("info")
-        logger.info(f"Put on: {request.path}; Manufacturer: {request.data['manufacturer_name']}; Model: "
-                    f"{request.data['model_name']}; Price: {request.data['price']};")
+        logger.info(f"Put on: {request.path}; Manufacturer: {request.data['manufacturer_name']}; "
+                    f"Model: {request.data['model_name']}; Price: {request.data['price']};")
         return self.update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
